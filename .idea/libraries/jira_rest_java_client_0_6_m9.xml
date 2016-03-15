@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jira-rest-java-client-0.6-m9">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../Libraries/jira-rest-java-client-0.6-m9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
