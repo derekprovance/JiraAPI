@@ -8,6 +8,9 @@ import com.derekprovance.configurations.JiraCookie;
 import com.derekprovance.configurations.JqlQueryParams;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.*;
@@ -22,21 +25,12 @@ public class CurrentTickets {
     public void getCurrentTickets() {
         String jqlQuery = JqlQueryParams.getInstance().getJqlQuery();
 
-        HttpEntity requestEntity = new HttpEntity(preparePostCurrentTicketsQuery(jqlQuery, 0, 15), cookie.getRequestHeaders());
+        HttpEntity requestEntity = new HttpEntity(new SearchRequest(jqlQuery, 0, 15), cookie.getRequestHeaders());
 
         //TODO - Post request is not working, next steps will be to try to fix this
         String uri = context.getBean("baseJiraURL") + "rest/api/2/search";
         ResponseEntity rssResponse = cookie.getRestTemplate().exchange(uri, HttpMethod.POST, requestEntity, JqlQuery.class);
         JqlQuery rss = (JqlQuery) rssResponse.getBody();
-        System.out.println(getJson(rss));
-    }
-
-    private SearchRequest preparePostCurrentTicketsQuery(String jql, int min, int max) {
-        SearchRequest request = new SearchRequest();
-        request.setJql(jql);
-        request.setStartsAt(min);
-        request.setMaxResults(max);
-        return request;
     }
 
     public JiraIssue getSpecificTicket(String ticketNumber) {
@@ -45,7 +39,26 @@ public class CurrentTickets {
         return (JiraIssue) rssResponse.getBody();
     }
 
+    public String getRandomCatFact() {
+        String uri = "http://catfacts-api.appspot.com/api/facts";
+        ResponseEntity rssResponse = cookie.getRestTemplate().exchange(uri, HttpMethod.GET, cookie.getRequestEntity(), String.class);
+
+        JSONObject obj = null;
+        JSONArray catFacts = null;
+        String catFact = null;
+        try {
+            obj = new JSONObject((String) rssResponse.getBody());
+            catFacts = obj.getJSONArray("facts");
+            catFact = (String) catFacts.get(0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return catFact;
+    }
+
     public void updateDeploymentInfoSpecificTicket(String ticketNumber, JiraIssueFields newInfo, JiraIssueFields existingInfo) {
+        newInfo.setDeployment_war(createWarDeploymentString(newInfo, existingInfo));
         newInfo.setDeployment_info(createDeploymentInfoString(newInfo, existingInfo));
 
         String uri = context.getBean("baseJiraURL") + "/rest/api/2/issue/" + ticketNumber;
@@ -59,6 +72,12 @@ public class CurrentTickets {
         }
     }
 
+    private String createWarDeploymentString(JiraIssueFields newInfo, JiraIssueFields existingInfo) {
+        //TODO - this will require quite a bit of logic to handle random developer inputs
+        //TODO - we want the ability to append to existing items and not effect them
+        return newInfo.getDeployment_war();
+    }
+
     private String createDeploymentInfoString(JiraIssueFields newInfo, JiraIssueFields existingInfo) {
         if(existingInfo.getDeployment_info() == null) {
             return newInfo.getDeployment_info();
@@ -68,14 +87,18 @@ public class CurrentTickets {
     }
 
     private void writeCommentDeploymentSuccessful(String ticketNumber) {
+        String body = langFile.getBean("successfulDeployment") + "\\n\\n[JiraBot] Fact: " + getRandomCatFact();
+
         String uri = context.getBean("baseJiraURL") + "/rest/api/2/issue/" + ticketNumber + "/comment";
         HttpHeaders requestHeaders = cookie.getRequestHeaders();
-        HttpEntity requestEntity = new HttpEntity("{\"body\":\"" + langFile.getBean("successfulDeployment") + "\"}", requestHeaders);
+        HttpEntity requestEntity = new HttpEntity("{\"body\":\"" + body + "\"}", requestHeaders);
 
         try {
-            ResponseEntity request = cookie.getRestTemplate().exchange(uri, HttpMethod.POST, requestEntity, String.class);
-        } catch (HttpClientErrorException e) {
+            cookie.getRestTemplate().exchange(uri, HttpMethod.POST, requestEntity, String.class);
+        } catch (HttpClientErrorException e){
             e.printStackTrace();
+            requestEntity = new HttpEntity("{\"body\":\"" + langFile.getBean("successfulDeployment") + "\"}", requestHeaders);
+            cookie.getRestTemplate().exchange(uri, HttpMethod.POST, requestEntity, String.class);
         }
     }
 

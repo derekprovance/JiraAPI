@@ -7,6 +7,14 @@ public class SearchRequest {
     int maxResults;
     String[] fields = new String[]{"summary", "status", "assignee"};
 
+    public SearchRequest() {}
+
+    public SearchRequest(String jql, int startsAt, int maxResults) {
+        this.jql = jql;
+        this.startsAt = startsAt;
+        this.maxResults = maxResults;
+    }
+
     public String getJql() {
         return jql;
     }
