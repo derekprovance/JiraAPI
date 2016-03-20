@@ -1,4 +1,5 @@
 AppConfig.xml
 .idea/*
 build/*
+out/*
 *.iml
