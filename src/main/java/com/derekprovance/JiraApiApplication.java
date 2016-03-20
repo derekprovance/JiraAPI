@@ -1,19 +1,20 @@
 package com.derekprovance;
 
-import com.derekprovance.configurations.JqlQueryParams;
+import com.derekprovance.apiObject.issues.JiraIssueFields;
 import com.derekprovance.services.CurrentTickets;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.net.URISyntaxException;
 
-@SpringBootApplication
 public class JiraApiApplication {
 
     public static void main(String[] args) throws URISyntaxException {
-		SpringApplication.run(JiraApiApplication.class, args);
+		//TODO - implement actual args
+		String ticketNumber = "PS-23020";
+		String deploymentWar = "HillsVetUS RandomGarbage";
+		String deploymentNotes = "This is the deployment description\nThis is a new line";
 
 		CurrentTickets tickets = new CurrentTickets();
-		tickets.getCurrentTickets();
-	}
+        JiraIssueFields newInfo = new JiraIssueFields(deploymentWar, deploymentNotes);
+        tickets.updateDeploymentInfoSpecificTicket(ticketNumber, newInfo, tickets.getSpecificTicket(ticketNumber).getFields());
+    }
 
 }

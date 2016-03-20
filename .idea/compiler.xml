@@ -18,5 +18,9 @@
         <processorPath useClasspath="true" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="JiraAPI_main" target="1.8" />
+      <module name="JiraAPI_test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

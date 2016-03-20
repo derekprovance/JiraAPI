@@ -7,6 +7,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
+
 public class JiraCookie {
 
     private static JiraCookie instance = null;
@@ -35,6 +36,10 @@ public class JiraCookie {
         return instance;
     }
 
+    public static void logOut() {
+        //TODO - implement this function
+    }
+
     public RestTemplate getRestTemplate() {
         return restTemplate;
     }
@@ -43,11 +48,8 @@ public class JiraCookie {
         return requestEntity;
     }
 
-    public static HttpHeaders getRequestHeaders() {
+    public HttpHeaders getRequestHeaders() {
         return requestHeaders;
     }
 
-    public static void setRequestHeaders(HttpHeaders requestHeaders) {
-        JiraCookie.requestHeaders = requestHeaders;
-    }
 }

@@ -31,4 +31,11 @@ public class SearchRequest {
         this.maxResults = maxResults;
     }
 
+    public String[] getFields() {
+        return fields;
+    }
+
+    public void setFields(String[] fields) {
+        this.fields = fields;
+    }
 }

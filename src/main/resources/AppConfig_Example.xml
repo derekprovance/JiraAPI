@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean name="baseJiraURL" class="java.lang.String">
+        <constructor-arg value="https://example.com/jira/" />
+    </bean>
+
+    <bean name="ticketPool" class="java.lang.String">
+        <constructor-arg value="13900" />
+    </bean>
+
+    <bean id="user" class="com.derekprovance.configurations.AuthUser">
+        <property name="username" value="user"/>
+        <property name="password" value="pass"/>
+    </bean>
+
+</beans>
