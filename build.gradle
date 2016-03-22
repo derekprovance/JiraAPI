@@ -19,6 +19,12 @@ apply plugin: 'spring-boot'
 jar {
 	baseName = 'JiraAPI'
 	version = '0.0.1-SNAPSHOT'
+    destinationDir = file("$buildDir")
+//    manifest {
+//	  attributes("Implementation-Title": baseName,
+//				 "Implementation-Version": version,
+//				 "Main-Class": "com.derekprovance.JiraApiApplication")
+//    }
 }
 
 sourceCompatibility = 1.8

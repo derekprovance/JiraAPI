@@ -2,25 +2,29 @@ package com.derekprovance;
 
 import com.derekprovance.apiObject.issues.JiraIssueFields;
 import com.derekprovance.services.CurrentTickets;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class JiraApiApplication {
 
     public static void main(String[] args) throws URISyntaxException {
-		//TODO - implement actual args
-        if(args.length < 2) {
-            System.out.println("Error: Parameters are <ticket> <war info> <dep notes>");
-            return;
+        CurrentTickets tickets = new CurrentTickets();
+        JiraIssueFields newInfo = null;
+        switch(args.length) {
+            case 3:
+                newInfo = new JiraIssueFields(args[2], null);
+                break;
+            case 4:
+                newInfo = new JiraIssueFields(args[2], args[3]);
+                break;
+            default:
+                System.out.println("Error: Parameters are <ticket> <bool: deploy_staging> <war info> <depl notes>");
+                System.exit(0);
         }
 
-		String ticketNumber = args[0];
-		String deploymentWar = args[1];
-		String deploymentNotes = args[2];
-
-		CurrentTickets tickets = new CurrentTickets();
-
-        JiraIssueFields newInfo = new JiraIssueFields(deploymentWar, deploymentNotes);
-        tickets.updateDeploymentInfoSpecificTicket(ticketNumber, newInfo, tickets.getSpecificTicket(ticketNumber).getFields());
+        tickets.updateDeploymentInfoSpecificTicket(args[0], Boolean.valueOf(args[1]), newInfo, tickets.getSpecificTicket(args[0]).getFields());
     }
-
 }

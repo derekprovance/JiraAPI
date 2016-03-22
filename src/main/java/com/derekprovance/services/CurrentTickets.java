@@ -16,6 +16,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.ArrayList;
+
 public class CurrentTickets {
 
     private ApplicationContext context = new ClassPathXmlApplicationContext("AppConfig.xml");
@@ -39,16 +41,14 @@ public class CurrentTickets {
         return (JiraIssue) rssResponse.getBody();
     }
 
-    public String getRandomCatFact() {
+    private String getRandomCatFact() {
         String uri = "http://catfacts-api.appspot.com/api/facts";
         ResponseEntity rssResponse = cookie.getRestTemplate().exchange(uri, HttpMethod.GET, cookie.getRequestEntity(), String.class);
 
-        JSONObject obj = null;
-        JSONArray catFacts = null;
-        String catFact = null;
+        String catFact = "";
         try {
-            obj = new JSONObject((String) rssResponse.getBody());
-            catFacts = obj.getJSONArray("facts");
+            JSONObject obj = new JSONObject((String) rssResponse.getBody());
+            JSONArray catFacts = obj.getJSONArray("facts");
             catFact = (String) catFacts.get(0);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -57,9 +57,9 @@ public class CurrentTickets {
         return catFact;
     }
 
-    public void updateDeploymentInfoSpecificTicket(String ticketNumber, JiraIssueFields newInfo, JiraIssueFields existingInfo) {
-        newInfo.setDeployment_war(createWarDeploymentString(newInfo, existingInfo));
-        newInfo.setDeployment_info(createDeploymentInfoString(newInfo, existingInfo));
+    public void updateDeploymentInfoSpecificTicket(String ticketNumber, boolean stageDeploy, JiraIssueFields newInfo, JiraIssueFields existingInfo) {
+        newInfo.setDeployment_war(DeploymentWarGenerator.createWarDeploymentString(newInfo.getDeployment_war(), existingInfo.getDeployment_war()));
+        newInfo.setDeployment_info(createDeploymentInfoString(newInfo.getDeployment_info(), existingInfo.getDeployment_info()));
 
         String uri = context.getBean("baseJiraURL") + "/rest/api/2/issue/" + ticketNumber;
         HttpHeaders requestHeaders = cookie.getRequestHeaders();
@@ -67,26 +67,20 @@ public class CurrentTickets {
         HttpEntity requestEntity = new HttpEntity("{\"fields\":" + getJson(newInfo) + "}", requestHeaders);
 
         ResponseEntity request = cookie.getRestTemplate().exchange(uri, HttpMethod.PUT, requestEntity, String.class);
-        if(request.getStatusCode() == HttpStatus.NO_CONTENT) {
+        if(request.getStatusCode() == HttpStatus.NO_CONTENT && stageDeploy) {
             writeCommentDeploymentSuccessful(ticketNumber);
         }
     }
 
-    private String createWarDeploymentString(JiraIssueFields newInfo, JiraIssueFields existingInfo) {
-        //TODO - this will require quite a bit of logic to handle random developer inputs
-        //TODO - we want the ability to append to existing items and not effect them
-        return newInfo.getDeployment_war();
-    }
-
-    private String createDeploymentInfoString(JiraIssueFields newInfo, JiraIssueFields existingInfo) {
-        if(existingInfo.getDeployment_info() == null) {
-            return newInfo.getDeployment_info();
+    private String createDeploymentInfoString(String newDepInfo, String existingDepInfo) {
+        if(existingDepInfo == null) {
+            return newDepInfo;
         }
 
-        return existingInfo.getDeployment_info() + "\n" + newInfo.getDeployment_info();
+        return existingDepInfo + "\n" + newDepInfo;
     }
 
-    private void writeCommentDeploymentSuccessful(String ticketNumber) {
+    public void writeCommentDeploymentSuccessful(String ticketNumber) {
         String body = langFile.getBean("successfulDeployment") + "\\n\\n[JiraBot] Fact: " + getRandomCatFact();
 
         String uri = context.getBean("baseJiraURL") + "/rest/api/2/issue/" + ticketNumber + "/comment";
@@ -103,10 +97,6 @@ public class CurrentTickets {
     }
 
     private String getJson(Object obj) {
-        //Note - It's bad practice to include notes in functions, but this is a learning project
-        //Could override the toString class for each object. Duplicate code though? Perhaps a
-        //Utility Class and each object inherits that class. Performance implications could also arise
-        //Using the objectmapper constantly for toString actions.
         ObjectMapper mapper = new ObjectMapper();
         String jsonInString = "";
         try {
