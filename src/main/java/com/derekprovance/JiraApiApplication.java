@@ -22,6 +22,7 @@ public class JiraApiApplication {
                 break;
             default:
                 System.out.println("Error: Parameters are <ticket> <bool: deploy_staging> <war info> <depl notes>");
+                System.out.println("Note: New War Format (<Project Name> <Tag Number>)");
                 System.exit(0);
         }
 

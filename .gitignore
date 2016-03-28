@@ -3,3 +3,4 @@ AppConfig.xml
 build/*
 out/*
 *.iml
+.DS_Store

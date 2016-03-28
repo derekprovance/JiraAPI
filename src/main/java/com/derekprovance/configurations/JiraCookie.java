@@ -40,6 +40,11 @@ public class JiraCookie {
         //TODO - implement this function
     }
 
+    public static void getSavedCookie() {
+        //TODO - look into saving the cookie onto the system in a user specified directory
+        //If the directory is empty or the cookie is invalid, then request a new cookie.
+    }
+
     public RestTemplate getRestTemplate() {
         return restTemplate;
     }
