@@ -3,8 +3,12 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean name="successfulDeployment" class="java.lang.String">
+    <bean name="successfulDeploymentStage" class="java.lang.String">
         <constructor-arg value="[JiraBot] Successful deployment. This issue is ready for Stage Roll." />
+    </bean>
+
+    <bean name="successfulDeploymentQA" class="java.lang.String">
+        <constructor-arg value="[JiraBot] This issue is ready for QA." />
     </bean>
 
 </beans>

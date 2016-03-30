@@ -1,5 +1,6 @@
 package com.derekprovance.services;
 
+import com.derekprovance.TicketStatus;
 import com.derekprovance.apiObject.issues.JiraIssue;
 import com.derekprovance.apiObject.JqlQuery;
 import com.derekprovance.apiObject.issues.JiraIssueFields;
@@ -9,7 +10,6 @@ import com.derekprovance.configurations.JqlQueryParams;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -67,7 +67,8 @@ public class CurrentTickets {
 
         ResponseEntity<String> request = cookie.getRestTemplate().exchange(uri, HttpMethod.PUT, requestEntity, String.class);
         if(request.getStatusCode() == HttpStatus.NO_CONTENT && stageDeploy) {
-            writeCommentDeploymentSuccessful(ticketNumber);
+            TicketStatus status = DeploymentWarGenerator.determineDeploymentStatus(newInfo.getDeployment_war());
+            writeCommentDeploymentSuccessful(ticketNumber, status);
         }
     }
 
@@ -87,8 +88,9 @@ public class CurrentTickets {
         return existingDepInfo + "\n" + newDepInfo;
     }
 
-    private void writeCommentDeploymentSuccessful(String ticketNumber) {
-        String body = langFile.getBean("successfulDeployment") + "\\n\\n[JiraBot] Fact: " + getRandomCatFact();
+    private void writeCommentDeploymentSuccessful(String ticketNumber, TicketStatus status) {
+        String deploymentMessage = (status == TicketStatus.STAGING) ? (String) langFile.getBean("successfulDeploymentStage") : (String) langFile.getBean("successfulDeploymentQA");
+        String body = deploymentMessage + "\\n\\n[JiraBot] Fact: " + getRandomCatFact();
 
         String uri = context.getBean("baseJiraURL") + "/rest/api/2/issue/" + ticketNumber + "/comment";
         HttpHeaders requestHeaders = cookie.getRequestHeaders();

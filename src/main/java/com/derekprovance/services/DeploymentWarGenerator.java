@@ -1,33 +1,43 @@
 package com.derekprovance.services;
 
+import com.derekprovance.TicketStatus;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class DeploymentWarGenerator {
 
-    public static String createWarDeploymentString(String newDepWar, String existingDepWar) {
+    static String createWarDeploymentString(String newDepWar, String existingDepWar) {
         existingDepWar = notAvailableCheck(existingDepWar);
         ArrayList<String> existingWars = splitWarString(existingDepWar);
         ArrayList<String> newWars = splitWarString(newDepWar);
 
-        for (int i=0; i<newWars.size(); i++) {
-            String project = newWars.get(i).split(" ")[0];
+        for (String newWar : newWars) {
+            String project = newWar.split(" ")[0];
             int index = existingWarContainsProject(existingWars, project);
-            if(index != -1) {
-                existingWars.set(index, newWars.get(i));
+            if (index != -1) {
+                existingWars.set(index, newWar);
             } else {
-                existingWars.add(newWars.get(i));
+                if(!newWar.equals(""))
+                    existingWars.add(newWar);
             }
         }
 
         return rebuildDeploymentWarString(existingWars);
     }
 
-    private static String notAvailableCheck(String existingDepWar) {
-        if(existingDepWar == null)
-            return null;
+    static TicketStatus determineDeploymentStatus(String existingDepWar) {
+        if(notAvailableCheck(existingDepWar) == null || existingDepWar.equals("")) {
+            return TicketStatus.QA;
+        } else {
+            return TicketStatus.STAGING;
+        }
+    }
 
-        if(existingDepWar.toLowerCase().equals("n/a")) {
+    private static String notAvailableCheck(String existingDepWar) {
+        if(existingDepWar == null) {
+            return null;
+        } else if(existingDepWar.toLowerCase().equals("n/a")) {
             existingDepWar = null;
         }
 
@@ -49,7 +59,7 @@ public class DeploymentWarGenerator {
 
     private static int existingWarContainsProject(ArrayList<String> existingWar, String project) {
         for(int i=0; i<existingWar.size(); i++) {
-            if(existingWar.get(i).contains(project)) {
+            if(existingWar.get(i).contains(project) && !project.equals("")) {
                 return i;
             }
         }
