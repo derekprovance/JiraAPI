@@ -1,5 +1,5 @@
 package com.derekprovance;
 
 public enum TicketStatus {
-    QA, STAGING;
+    QA, STAGING
 }

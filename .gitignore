@@ -1,5 +1,6 @@
 AppConfig.xml
 .idea/*
+.gradle/*
 build/*
 out/*
 *.iml

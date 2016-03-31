@@ -18,6 +18,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.HashMap;
+
 public class CurrentTickets {
 
     private ApplicationContext context = new ClassPathXmlApplicationContext("AppConfig.xml");
@@ -57,18 +59,36 @@ public class CurrentTickets {
         return catFact;
     }
 
+    private void assignIssue(String name, String ticketNumber) {
+        String uri = context.getBean("baseJiraURL") + "rest/api/2/issue/" + ticketNumber + "/assignee";
+        HttpHeaders requestHeaders = cookie.getRequestHeaders();
+        requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>("{\"name\":\"" + context.getBean("defaultTicketAssignee") + "\"}", requestHeaders);
+
+        try {
+            ResponseEntity<String> request = cookie.getRestTemplate().exchange(uri, HttpMethod.PUT, requestEntity, String.class);
+        } catch (Exception e) {
+            System.out.println(requestEntity.getBody());
+            e.getCause();
+        }
+    }
+
     public void updateDeploymentInfoSpecificTicket(String ticketNumber, boolean stageDeploy, JiraIssueFields newInfo, JiraIssueFields existingInfo) {
         newInfo = importNewInfo(newInfo, existingInfo);
 
         String uri = context.getBean("baseJiraURL") + "/rest/api/2/issue/" + ticketNumber;
         HttpHeaders requestHeaders = cookie.getRequestHeaders();
-        requestHeaders.add("Content-Type", "application/json");
+        requestHeaders.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> requestEntity = new HttpEntity<String>("{\"fields\":" + getJson(newInfo) + "}", requestHeaders);
 
         ResponseEntity<String> request = cookie.getRestTemplate().exchange(uri, HttpMethod.PUT, requestEntity, String.class);
+
         if(request.getStatusCode() == HttpStatus.NO_CONTENT && stageDeploy) {
-            TicketStatus status = DeploymentWarGenerator.determineDeploymentStatus(newInfo.getDeployment_war());
-            writeCommentDeploymentSuccessful(ticketNumber, status);
+            writeCommentDeploymentSuccessful(ticketNumber, DeploymentWarGenerator.determineDeploymentStatus(newInfo.getDeployment_war()));
+
+            //TODO - automate assigning to project managers instead
+            assignIssue((String) context.getBean("defaultTicketAssignee"), ticketNumber);
         }
     }
 
@@ -100,7 +120,7 @@ public class CurrentTickets {
             cookie.getRestTemplate().exchange(uri, HttpMethod.POST, requestEntity, String.class);
         } catch (HttpClientErrorException e){
             e.printStackTrace();
-            requestEntity = new HttpEntity<String>("{\"body\":\"" + langFile.getBean("successfulDeployment") + "\"}", requestHeaders);
+            requestEntity = new HttpEntity<String>("{\"body\":\"" + langFile.getBean("successfulDeploymentStage") + "\"}", requestHeaders);
             cookie.getRestTemplate().exchange(uri, HttpMethod.POST, requestEntity, String.class);
         }
     }

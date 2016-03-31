@@ -6,6 +6,8 @@ import static org.junit.Assert.*;
 
 public class CurrentTicketsTest {
 
+    //TODO - need to look into how to do restful api testing
+
     @Test
     public void getCurrentTickets() throws Exception {
 
