@@ -16,4 +16,8 @@
         <property name="password" value="pass"/>
     </bean>
 
+    <bean name="defaultTicketAssignee" class="java.lang.String">
+        <constructor-arg value="jiraUserName" />
+    </bean>
+
 </beans>

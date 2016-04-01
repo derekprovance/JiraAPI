@@ -66,12 +66,7 @@ public class CurrentTickets {
 
         HttpEntity<String> requestEntity = new HttpEntity<>("{\"name\":\"" + context.getBean("defaultTicketAssignee") + "\"}", requestHeaders);
 
-        try {
-            ResponseEntity<String> request = cookie.getRestTemplate().exchange(uri, HttpMethod.PUT, requestEntity, String.class);
-        } catch (Exception e) {
-            System.out.println(requestEntity.getBody());
-            e.getCause();
-        }
+        ResponseEntity<String> request = cookie.getRestTemplate().exchange(uri, HttpMethod.PUT, requestEntity, String.class);
     }
 
     public void updateDeploymentInfoSpecificTicket(String ticketNumber, boolean stageDeploy, JiraIssueFields newInfo, JiraIssueFields existingInfo) {
